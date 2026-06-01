@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "types": ["vite/client", "vitest/globals"],
+    "paths": {
+      "@upadhyay-erp/core": ["../../packages/core/src/index.ts"],
+      "@upadhyay-erp/erp-services": ["../../packages/erp-services/src/index.ts"],
+      "@upadhyay-erp/infra": ["../../packages/infra/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

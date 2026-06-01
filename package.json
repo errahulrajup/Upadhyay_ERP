@@ -1,0 +1,24 @@
+{
+  "name": "upadhyay-erp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm --workspace @upadhyay-erp/web run dev",
+    "build": "npm --workspaces --if-present run build",
+    "type-check": "npm --workspaces --if-present run type-check",
+    "lint": "npm --workspaces --if-present run lint",
+    "test": "npm --workspaces --if-present run test",
+    "db:check": "node tools/check-migrations.mjs && node tools/check-sql-files.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@upadhyay-erp/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "@upadhyay-erp/core": "0.1.0",
+    "@upadhyay-erp/erp-services": "0.1.0",
+    "@upadhyay-erp/infra": "0.1.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.16.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.4.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "vitest": "^4.1.7"
+  }
+}

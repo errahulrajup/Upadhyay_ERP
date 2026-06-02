@@ -20,7 +20,7 @@ export default function AddGeneralItemModal({ isOpen, onClose, onSuccess }: AddG
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await inventoryApi.addGeneralItem({
+    const { error } = await inventoryApi.addGeneralItem({
       name,
       category,
       qty: Number(qty) || 0,
@@ -29,6 +29,12 @@ export default function AddGeneralItemModal({ isOpen, onClose, onSuccess }: AddG
       min_stock_level: 10
     });
     setLoading(false);
+    
+    if (error) {
+      alert(`Failed to save: ${error.message || 'Check if the SQL table is created in Supabase.'}`);
+      return;
+    }
+
     onSuccess();
     onClose();
   };

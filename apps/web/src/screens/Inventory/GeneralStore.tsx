@@ -14,7 +14,10 @@ export default function GeneralStore() {
 
   const loadItems = async () => {
     setLoading(true);
-    const { data } = await inventoryApi.getGeneralItems();
+    const { data, error } = await inventoryApi.getGeneralItems();
+    if (error) {
+      alert(`Database Error: ${error.message}. Please run the 16_general_store_schema.sql script in Supabase!`);
+    }
     if (data) setItems(data);
     setLoading(false);
   };

@@ -1,39 +1,47 @@
 import React from 'react';
 import { Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, Beaker, Truck, FileCheck, Search, Settings, ShieldCheck, FlaskConical } from 'lucide-react';
+import { LayoutDashboard, Package, Beaker, Truck, FileCheck, Search, Settings, ShieldCheck, FlaskConical, Users, Folder } from 'lucide-react';
 
-// Temporary Mock Components for Routes
-const Dashboard = () => (
-  <div className="animate-in">
-    <h1>Dashboard</h1>
-    <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>Welcome to Upadhyay_ERP</p>
-    
-    <div className="grid-3" style={{ marginTop: '32px' }}>
-      <div className="card">
-        <h3 style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Active Batches</h3>
-        <p style={{ fontSize: '32px', fontWeight: '800', marginTop: '12px' }}>12</p>
-        <span className="badge badge-success" style={{ marginTop: '12px', display: 'inline-block' }}>All Good</span>
-      </div>
-      <div className="card">
-        <h3 style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Pending QC</h3>
-        <p style={{ fontSize: '32px', fontWeight: '800', marginTop: '12px' }}>5</p>
-        <span className="badge badge-warning" style={{ marginTop: '12px', display: 'inline-block' }}>Attention Needed</span>
-      </div>
-      <div className="card">
-        <h3 style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Dispatches Today</h3>
-        <p style={{ fontSize: '32px', fontWeight: '800', marginTop: '12px' }}>8</p>
-      </div>
-    </div>
-  </div>
-);
+import MasterAnalytics from './screens/DMS/MasterAnalytics';
 
 import InventoryLayout from './screens/Inventory/InventoryLayout';
 import ProductionLayout from './screens/Production/ProductionLayout';
+import GrnDashboard from './screens/Inventory/GrnDashboard';
+import RmStore from './screens/Inventory/RmStore';
+import FgStore from './screens/Inventory/FgStore';
+import GeneralStore from './screens/Inventory/GeneralStore';
+import StorageLocations from './screens/Inventory/StorageLocations';
+import StockLedger from './screens/Inventory/StockLedger';
 import QcDashboard from './screens/QC/QcDashboard';
+import RnDLayout from './screens/RnD/RnDLayout';
+import RecipeEngine from './screens/RnD/RecipeEngine';
+import LabNotebook from './screens/RnD/LabNotebook';
 import LogisticsLayout from './screens/Logistics/LogisticsLayout';
 import ComplianceLayout from './screens/Compliance/ComplianceLayout';
 import RnDDashboard from './screens/RnD/RnDDashboard';
+import FloorMonitor from './screens/Production/FloorMonitor';
+import PackagingHouse from './screens/Production/PackagingHouse';
+import Equipment from './screens/Production/Equipment';
+import WorkCenters from './screens/Production/WorkCenters';
+import DailyLogs from './screens/Production/DailyLogs';
+import BatchDashboard from './screens/Production/BatchDashboard';
 import TraceabilityTree from './screens/Traceability/TraceabilityTree';
+import SettingsDashboard from './screens/SettingsDashboard';
+import BatchQc from './screens/QC/BatchQc';
+import SopRegister from './screens/Compliance/SopRegister';
+import TrainingMatrix from './screens/Compliance/TrainingMatrix';
+import HaccpPrpDashboard from './screens/Compliance/HaccpPrpDashboard';
+import RecallCapaTracker from './screens/Compliance/RecallCapaTracker';
+import TrainingAudits from './screens/Compliance/TrainingAudits';
+import FinanceLayout from './screens/Finance/FinanceLayout';
+import PurchaseOrders from './screens/Finance/PurchaseOrders';
+import Invoicing from './screens/Finance/Invoicing';
+import GeneralLedger from './screens/Finance/GeneralLedger';
+import HrLayout from './screens/HR/HrLayout';
+import EmployeeDirectory from './screens/HR/EmployeeDirectory';
+import AttendanceTracker from './screens/HR/AttendanceTracker';
+import PayrollDashboard from './screens/HR/PayrollDashboard';
+import DocumentVault from './screens/DMS/DocumentVault';
 
 const Placeholder = ({ title }: { title: string }) => (
   <div className="animate-in">
@@ -71,10 +79,19 @@ export default function App() {
             <FileCheck size={20} /> QC & Release
           </NavLink>
           <NavLink to="/logistics" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
-            <Truck size={20} /> Logistics & Finance
+            <Truck size={20} /> Logistics & Dispatches
+          </NavLink>
+          <NavLink to="/finance" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FileCheck size={20} /> Accounts & Finance
           </NavLink>
           <NavLink to="/compliance" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <ShieldCheck size={20} /> FSMS & Compliance
+          </NavLink>
+          <NavLink to="/hr" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+            <Users size={20} /> HR & Payroll
+          </NavLink>
+          <NavLink to="/dms" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+            <Folder size={20} /> Docs & Vault
           </NavLink>
           <NavLink to="/traceability" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <Search size={20} /> Traceability
@@ -104,15 +121,53 @@ export default function App() {
         
         <div className="page-container">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/inventory/*" element={<InventoryLayout />} />
-            <Route path="/rnd" element={<RnDDashboard />} />
-            <Route path="/production/*" element={<ProductionLayout />} />
-            <Route path="/qc" element={<QcDashboard />} />
+            <Route path="/" element={<MasterAnalytics />} />
+            <Route path="/inventory/*" element={<InventoryLayout />}>
+              <Route index element={<GrnDashboard />} />
+              <Route path="rm-store" element={<RmStore />} />
+              <Route path="fg-store" element={<FgStore />} />
+              <Route path="general-store" element={<GeneralStore />} />
+              <Route path="locations" element={<StorageLocations />} />
+              <Route path="ledger" element={<StockLedger />} />
+            </Route>
+            <Route path="/rnd/*" element={<RnDLayout />}>
+              <Route index element={<RecipeEngine />} />
+              <Route path="notebook" element={<LabNotebook />} />
+            </Route>
+            <Route path="/production/*" element={<ProductionLayout />}>
+              <Route index element={<BatchDashboard />} />
+              <Route path="batches" element={<BatchDashboard />} />
+              <Route path="monitor" element={<FloorMonitor />} />
+              <Route path="packaging" element={<PackagingHouse />} />
+              <Route path="work-centers" element={<WorkCenters />} />
+              <Route path="equipment" element={<Equipment />} />
+              <Route path="logs" element={<DailyLogs />} />
+            </Route>
+            <Route path="/qc" element={<BatchQc />} />
             <Route path="/logistics/*" element={<LogisticsLayout />} />
-            <Route path="/compliance/*" element={<ComplianceLayout />} />
+            <Route path="/compliance/*" element={<ComplianceLayout />}>
+              <Route index element={<HaccpPrpDashboard />} />
+              <Route path="haccp" element={<HaccpPrpDashboard />} />
+              <Route path="capa" element={<RecallCapaTracker />} />
+              <Route path="sops" element={<SopRegister />} />
+              <Route path="training" element={<TrainingMatrix />} />
+              <Route path="audits" element={<TrainingAudits />} />
+            </Route>
+            <Route path="/finance/*" element={<FinanceLayout />}>
+              <Route index element={<Invoicing />} />
+              <Route path="orders" element={<PurchaseOrders />} />
+              <Route path="invoices" element={<Invoicing />} />
+              <Route path="ledger" element={<GeneralLedger />} />
+            </Route>
+            <Route path="/hr/*" element={<HrLayout />}>
+              <Route index element={<EmployeeDirectory />} />
+              <Route path="directory" element={<EmployeeDirectory />} />
+              <Route path="attendance" element={<AttendanceTracker />} />
+              <Route path="payroll" element={<PayrollDashboard />} />
+            </Route>
+            <Route path="/dms" element={<DocumentVault />} />
             <Route path="/traceability" element={<TraceabilityTree />} />
-            <Route path="/settings" element={<Placeholder title="Settings" />} />
+            <Route path="/settings" element={<SettingsDashboard />} />
           </Routes>
         </div>
       </main>

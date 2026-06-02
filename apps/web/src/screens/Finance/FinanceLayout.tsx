@@ -1,14 +1,11 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 
-export default function ProductionLayout() {
+export default function FinanceLayout() {
   const navItems = [
-    { path: '/production/batches', label: 'Batch Dashboard' },
-    { path: '/production/monitor', label: 'Floor Monitor' },
-    { path: '/production/packaging', label: 'Packaging House' },
-    { path: '/production/work-centers', label: 'Work Centers' },
-    { path: '/production/equipment', label: 'Equipment' },
-    { path: '/production/logs', label: 'Daily Logs' },
+    { path: '/finance/orders', label: 'Purchase Orders' },
+    { path: '/finance/invoices', label: 'Invoicing (AR/AP)' },
+    { path: '/finance/ledger', label: 'General Ledger' },
   ];
 
   return (

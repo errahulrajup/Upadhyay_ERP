@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../../components/ui/Modal';
 import { PackagePlus } from 'lucide-react';
+import { inventoryApi } from '../../lib/bosApi';
 
 interface CreateGrnModalProps {
   isOpen: boolean;
@@ -10,13 +11,39 @@ interface CreateGrnModalProps {
 
 export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrnModalProps) {
   const [loading, setLoading] = useState(false);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
+  
+  const [supplierId, setSupplierId] = useState('');
+  const [materialId, setMaterialId] = useState('');
+  const [qty, setQty] = useState('');
+  const [expectedExpiry, setExpectedExpiry] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      loadMasterData();
+    }
+  }, [isOpen]);
+
+  const loadMasterData = async () => {
+    const [supRes, matRes] = await Promise.all([
+      inventoryApi.getSuppliers(),
+      inventoryApi.getMaterials()
+    ]);
+    if (supRes.data) setSuppliers(supRes.data);
+    if (matRes.data) setMaterials(matRes.data);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API call to create GRN
-    await new Promise(r => setTimeout(r, 800));
+    await inventoryApi.createGrn({
+      supplierId,
+      materialId,
+      qty: Number(qty),
+      expectedExpiry
+    });
     
     setLoading(false);
     onSuccess();
@@ -29,24 +56,31 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Supplier Name</label>
-          <input 
-            type="text" 
+          <select 
             required
-            placeholder="e.g. Global Foods Inc."
+            value={supplierId}
+            onChange={(e) => setSupplierId(e.target.value)}
             style={{ 
               padding: '12px', 
               borderRadius: '8px', 
               border: '1px solid var(--glass-border)', 
-              background: 'rgba(0,0,0,0.2)', 
+              background: '#0F172A', 
               color: 'white' 
             }}
-          />
+          >
+            <option value="">Select Supplier...</option>
+            {suppliers.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Ingredient Received</label>
           <select 
             required
+            value={materialId}
+            onChange={(e) => setMaterialId(e.target.value)}
             style={{ 
               padding: '12px', 
               borderRadius: '8px', 
@@ -56,9 +90,9 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
             }}
           >
             <option value="">Select Ingredient...</option>
-            <option value="RM-01">Citric Acid</option>
-            <option value="RM-02">Sugar</option>
-            <option value="RM-03">Apple Concentrate</option>
+            {materials.map(m => (
+              <option key={m.id} value={m.id}>{m.code} - {m.name}</option>
+            ))}
           </select>
         </div>
 
@@ -69,6 +103,8 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
               type="number" 
               required
               min="1"
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
               placeholder="0.00"
               style={{ 
                 padding: '12px', 
@@ -84,6 +120,8 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
             <input 
               type="date" 
               required
+              value={expectedExpiry}
+              onChange={(e) => setExpectedExpiry(e.target.value)}
               style={{ 
                 padding: '12px', 
                 borderRadius: '8px', 

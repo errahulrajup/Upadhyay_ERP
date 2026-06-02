@@ -1,14 +1,11 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 
-export default function ProductionLayout() {
+export default function HrLayout() {
   const navItems = [
-    { path: '/production/batches', label: 'Batch Dashboard' },
-    { path: '/production/monitor', label: 'Floor Monitor' },
-    { path: '/production/packaging', label: 'Packaging House' },
-    { path: '/production/work-centers', label: 'Work Centers' },
-    { path: '/production/equipment', label: 'Equipment' },
-    { path: '/production/logs', label: 'Daily Logs' },
+    { path: '/hr/directory', label: 'Employee Directory' },
+    { path: '/hr/attendance', label: 'Attendance Tracker' },
+    { path: '/hr/payroll', label: 'Payroll Processing' },
   ];
 
   return (

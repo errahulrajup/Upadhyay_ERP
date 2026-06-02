@@ -1,14 +1,11 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
+import { Beaker, BookOpen } from 'lucide-react';
 
-export default function ProductionLayout() {
+export default function RnDLayout() {
   const navItems = [
-    { path: '/production/batches', label: 'Batch Dashboard' },
-    { path: '/production/monitor', label: 'Floor Monitor' },
-    { path: '/production/packaging', label: 'Packaging House' },
-    { path: '/production/work-centers', label: 'Work Centers' },
-    { path: '/production/equipment', label: 'Equipment' },
-    { path: '/production/logs', label: 'Daily Logs' },
+    { path: '/rnd', label: 'Recipe Engine', icon: <Beaker size={18} /> },
+    { path: '/rnd/notebook', label: 'Lab Notebook', icon: <BookOpen size={18} /> },
   ];
 
   return (
@@ -19,8 +16,10 @@ export default function ProductionLayout() {
           <NavLink 
             key={item.path}
             to={item.path}
+            end={item.path === '/rnd'}
             className={({isActive}) => isActive ? 'btn-primary' : ''}
             style={({isActive}) => ({ 
+              display: 'flex', alignItems: 'center', gap: '8px',
               padding: '8px 16px', borderRadius: '8px', 
               background: isActive ? 'var(--primary-accent)' : 'rgba(255,255,255,0.05)',
               color: isActive ? '#0F172A' : 'var(--text-main)',
@@ -28,6 +27,7 @@ export default function ProductionLayout() {
               whiteSpace: 'nowrap'
             })}
           >
+            {item.icon}
             {item.label}
           </NavLink>
         ))}

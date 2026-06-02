@@ -279,6 +279,14 @@ export const productionApi = {
     await new Promise(r => setTimeout(r, 600));
     return { data: undefined, error };
   },
+  getDailyLogs: async (): Promise<ApiResult<any[]>> => {
+    const { data, error } = await supabase.from('production_logs').select('*').order('logged_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  submitLog: async (payload: any): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('production_logs').insert([payload]);
+    return { data: undefined, error };
+  },
 };
 
 export const qcApi = {
@@ -429,27 +437,36 @@ export const financeApi = {
 export const hrApi = {
   // Phase 19: HRMS & Payroll Methods
   getEmployees: async (): Promise<ApiResult<any[]>> => {
-    const { data, error } = await supabase.from('employees').select('*');
+    const { data, error } = await supabase.from('employees').select('*').order('created_at', { ascending: false });
     return { data: data || [], error };
+  },
+  addEmployee: async (payload: any): Promise<ApiResult<void>> => {
+    payload.employee_code = 'EMP-' + Date.now().toString().slice(-4);
+    const { error } = await supabase.from('employees').insert([payload]);
+    return { data: undefined, error };
   },
   getAttendance: async (): Promise<ApiResult<any[]>> => {
-    const { data, error } = await supabase.from('attendance_logs').select('*');
+    const { data, error } = await supabase.from('attendance_logs').select('*, employees(name, employee_code)').order('date', { ascending: false });
     return { data: data || [], error };
   },
+  markAttendance: async (payload: any): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('attendance_logs').upsert([payload], { onConflict: 'employee_id,date' });
+    return { data: undefined, error };
+  },
   getPayrollRecords: async (): Promise<ApiResult<any[]>> => {
-    const { data, error } = await supabase.from('payroll_records').select('*');
+    const { data, error } = await supabase.from('payroll_records').select('*, employees(name, employee_code)').order('pay_period', { ascending: false });
     return { data: data || [], error };
   },
   processPayroll: async (payload: any): Promise<ApiResult<void>> => {
-    console.log(`RPC Call: process_payroll`, payload);
-    const { error } = await supabase.rpc('process_payroll', {
-      p_employee_id: payload.employeeId,
-      p_pay_period: payload.payPeriod,
-      p_allowances: payload.allowances,
-      p_deductions: payload.deductions
-    });
-    if (error) console.error("Supabase RPC Error:", error);
-    await new Promise(r => setTimeout(r, 600));
+    const { error } = await supabase.from('payroll_records').upsert([{
+      employee_id: payload.employeeId,
+      pay_period: payload.payPeriod,
+      base_pay: payload.basePay || 0,
+      allowances: payload.allowances || 0,
+      deductions: payload.deductions || 0,
+      net_pay: (payload.basePay || 0) + (payload.allowances || 0) - (payload.deductions || 0),
+      status: 'PROCESSED'
+    }], { onConflict: 'employee_id,pay_period' });
     return { data: undefined, error };
   },
 };

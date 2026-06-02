@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Users, UserPlus } from 'lucide-react';
 import { hrApi } from '../../lib/bosApi';
+import AddEmployeeModal from './AddEmployeeModal';
 
 export default function EmployeeDirectory() {
   const [employees, setEmployees] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadEmployees();
@@ -23,7 +25,7 @@ export default function EmployeeDirectory() {
           </h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Manage factory staff and operators.</p>
         </div>
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button className="btn-primary" onClick={() => setIsModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <UserPlus size={18} /> Add Employee
         </button>
       </div>
@@ -43,9 +45,9 @@ export default function EmployeeDirectory() {
             {employees.map(emp => (
               <tr key={emp.id}>
                 <td><strong>{emp.employee_code}</strong></td>
-                <td>{emp.first_name} {emp.last_name}</td>
+                <td>{emp.name}</td>
                 <td>{emp.department}</td>
-                <td>{emp.designation}</td>
+                <td>{emp.role}</td>
                 <td>
                   <span className={`status-badge ${emp.status === 'ACTIVE' ? 'status-approved' : 'status-quarantine'}`}>
                     {emp.status}
@@ -56,6 +58,14 @@ export default function EmployeeDirectory() {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <AddEmployeeModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={loadEmployees}
+        />
+      )}
     </div>
   );
 }

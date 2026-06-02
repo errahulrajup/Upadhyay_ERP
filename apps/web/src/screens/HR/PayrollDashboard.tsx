@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { IndianRupee, Settings } from 'lucide-react';
 import { hrApi } from '../../lib/bosApi';
+import RunPayrollModal from './RunPayrollModal';
 
 export default function PayrollDashboard() {
   const [payrolls, setPayrolls] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadPayroll();
@@ -23,7 +25,7 @@ export default function PayrollDashboard() {
           </h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Generate and manage monthly salary slips.</p>
         </div>
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button className="btn-primary" onClick={() => setIsModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Settings size={18} /> Run Payroll Batch
         </button>
       </div>
@@ -44,7 +46,7 @@ export default function PayrollDashboard() {
             {payrolls.map(pay => (
               <tr key={pay.id}>
                 <td>{pay.pay_period}</td>
-                <td><strong>{pay.employee_id}</strong></td>
+                <td><strong>{pay.employees?.name || pay.employee_id}</strong></td>
                 <td>₹{pay.base_pay?.toLocaleString()}</td>
                 <td style={{ color: '#4ADE80', fontWeight: 'bold' }}>₹{pay.net_pay?.toLocaleString()}</td>
                 <td>
@@ -60,6 +62,14 @@ export default function PayrollDashboard() {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <RunPayrollModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={loadPayroll}
+        />
+      )}
     </div>
   );
 }

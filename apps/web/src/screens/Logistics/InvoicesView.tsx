@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { financeApi } from '../../lib/bosApi';
 import { DollarSign, CheckCircle, AlertTriangle } from 'lucide-react';
+import RecordPaymentModal from './RecordPaymentModal';
 
 export default function InvoicesView() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
   useEffect(() => {
     loadInvoices();
@@ -63,7 +65,7 @@ export default function InvoicesView() {
                   </td>
                   <td style={{ padding: '16px' }}>
                     {inv.status === 'UNPAID' && (
-                      <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+                      <button className="btn-primary" onClick={() => setSelectedInvoice(inv)} style={{ padding: '6px 12px', fontSize: '12px' }}>
                         Post Payment
                       </button>
                     )}
@@ -73,6 +75,15 @@ export default function InvoicesView() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedInvoice && (
+        <RecordPaymentModal
+          isOpen={true}
+          onClose={() => setSelectedInvoice(null)}
+          onSuccess={loadInvoices}
+          invoice={selectedInvoice}
+        />
       )}
     </div>
   );

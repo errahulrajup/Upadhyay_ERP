@@ -14,6 +14,11 @@ export default function FgStore() {
     if (res.data) setLots(res.data);
   };
 
+  const handleStatusChange = async (lotId: string, newStatus: string) => {
+    await inventoryApi.updateFgLotStatus(lotId, newStatus);
+    loadLots();
+  };
+
   return (
     <div className="animate-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -40,6 +45,8 @@ export default function FgStore() {
               <th>Quantity</th>
               <th>Location</th>
               <th>Holding Status</th>
+              <th>COA</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -50,9 +57,23 @@ export default function FgStore() {
                 <td>{l.qty} kg</td>
                 <td>{l.location || 'Unassigned'}</td>
                 <td>
-                  <span className={`status-badge ${l.holding_status === 'RELEASED' ? 'status-approved' : 'status-quarantine'}`}>
-                    {l.holding_status}
+                  <span className={`status-badge ${l.holding_status === 'RELEASED' ? 'status-approved' : l.holding_status === 'HOLD' || l.holding_status === 'QUARANTINE' ? 'status-rejected' : 'status-pending'}`}>
+                    {l.holding_status || 'RELEASED'}
                   </span>
+                </td>
+                <td>{l.coa_issued ? <span style={{color: '#4ADE80'}}>Yes ({l.coa_no})</span> : <span style={{color: '#F87171'}}>No</span>}</td>
+                <td>
+                  <select 
+                    value={l.holding_status || 'RELEASED'} 
+                    onChange={(e) => handleStatusChange(l.id, e.target.value)}
+                    style={{ padding: '6px', borderRadius: '4px', background: 'rgba(0,0,0,0.2)', color: 'white', border: '1px solid var(--glass-border)' }}
+                  >
+                    <option value="INCUBATION">Incubation</option>
+                    <option value="MATURATION">Maturation</option>
+                    <option value="RELEASED">Released</option>
+                    <option value="QUARANTINE">Quarantine</option>
+                    <option value="HOLD">Hold</option>
+                  </select>
                 </td>
               </tr>
             ))}

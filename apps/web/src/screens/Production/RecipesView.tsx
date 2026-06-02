@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { productionApi } from '../../lib/bosApi';
 import { BookOpen } from 'lucide-react';
+import RecipeQcConfigModal from './RecipeQcConfigModal';
 
 export default function RecipesView() {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
 
   useEffect(() => {
     loadRecipes();
@@ -39,10 +41,24 @@ export default function RecipesView() {
                 <h3 style={{ fontSize: '18px', color: 'var(--primary-accent)' }}>{recipe.product}</h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Version {recipe.version}</p>
               </div>
-              <span className="badge badge-success" style={{ alignSelf: 'flex-start' }}>{recipe.status}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="badge badge-success">{recipe.status}</span>
+                <button className="btn-secondary" onClick={() => setSelectedRecipe(recipe)} style={{ fontSize: '12px', padding: '4px 8px' }}>
+                  QC Config
+                </button>
+              </div>
             </div>
           ))}
         </div>
+      )}
+      
+      {selectedRecipe && (
+        <RecipeQcConfigModal 
+          isOpen={true} 
+          onClose={() => setSelectedRecipe(null)} 
+          recipeId={selectedRecipe.id} 
+          recipeName={selectedRecipe.product} 
+        />
       )}
     </div>
   );

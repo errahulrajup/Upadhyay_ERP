@@ -18,6 +18,11 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
   const [materialId, setMaterialId] = useState('');
   const [qty, setQty] = useState('');
   const [expectedExpiry, setExpectedExpiry] = useState('');
+  
+  // New Audit Fix Fields
+  const [gstPercentage, setGstPercentage] = useState('0');
+  const [vehicleNo, setVehicleNo] = useState('');
+  const [invoiceNo, setInvoiceNo] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -42,7 +47,10 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
       supplierId,
       materialId,
       qty: Number(qty),
-      expectedExpiry
+      expectedExpiry,
+      gstPercentage: Number(gstPercentage),
+      vehicleNo,
+      invoiceNo
     });
     
     setLoading(false);
@@ -108,13 +116,7 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
               value={qty}
               onChange={(e) => setQty(e.target.value)}
               placeholder="0.00"
-              style={{ 
-                padding: '12px', 
-                borderRadius: '8px', 
-                border: '1px solid var(--glass-border)', 
-                background: 'rgba(0,0,0,0.2)', 
-                color: 'white' 
-              }}
+              style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -124,13 +126,45 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
               required
               value={expectedExpiry}
               onChange={(e) => setExpectedExpiry(e.target.value)}
-              style={{ 
-                padding: '12px', 
-                borderRadius: '8px', 
-                border: '1px solid var(--glass-border)', 
-                background: 'rgba(0,0,0,0.2)', 
-                color: 'white' 
-              }}
+              style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>GST (%)</label>
+            <input 
+              type="number" 
+              required
+              min="0"
+              max="100"
+              value={gstPercentage}
+              onChange={(e) => setGstPercentage(e.target.value)}
+              placeholder="18"
+              style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Invoice Number</label>
+            <input 
+              type="text" 
+              required
+              value={invoiceNo}
+              onChange={(e) => setInvoiceNo(e.target.value)}
+              placeholder="INV-XXXX"
+              style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Vehicle / LR No</label>
+            <input 
+              type="text" 
+              required
+              value={vehicleNo}
+              onChange={(e) => setVehicleNo(e.target.value)}
+              placeholder="MP-09-XX-XXXX"
+              style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
             />
           </div>
         </div>

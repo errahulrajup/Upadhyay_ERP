@@ -33,6 +33,7 @@ import BatchQc from './screens/QC/BatchQc';
 import SopRegister from './screens/Compliance/SopRegister';
 import TrainingMatrix from './screens/Compliance/TrainingMatrix';
 import HaccpPrpDashboard from './screens/Compliance/HaccpPrpDashboard';
+import AllergenMatrix from './screens/Compliance/AllergenMatrix';
 import RecallCapaTracker from './screens/Compliance/RecallCapaTracker';
 import TrainingAudits from './screens/Compliance/TrainingAudits';
 import FinanceLayout from './screens/Finance/FinanceLayout';
@@ -176,6 +177,7 @@ export default function App() {
             }>
               <Route index element={<HaccpPrpDashboard />} />
               <Route path="haccp" element={<HaccpPrpDashboard />} />
+              <Route path="allergens" element={<AllergenMatrix />} />
               <Route path="capa" element={<RecallCapaTracker />} />
               <Route path="sops" element={<SopRegister />} />
               <Route path="training" element={<TrainingMatrix />} />

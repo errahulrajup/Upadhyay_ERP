@@ -4,6 +4,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 export default function ComplianceLayout() {
   const navItems = [
     { path: '/compliance/haccp', label: 'HACCP & PRP' },
+    { path: '/compliance/allergens', label: 'Allergen Matrix' },
     { path: '/compliance/capa', label: 'Recall & CAPA' },
     { path: '/compliance/sops', label: 'SOP Register' },
     { path: '/compliance/training', label: 'Training Matrix' },

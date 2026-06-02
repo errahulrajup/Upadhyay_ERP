@@ -19,7 +19,11 @@ export default function NewDispatchModal({ isOpen, onClose, onSuccess }: NewDisp
   React.useEffect(() => {
     if (isOpen) {
       inventoryApi.getFgLots().then(res => {
-        if (res.data) setFgLots(res.data);
+        if (res.data) {
+          // Strictly filter: Only RELEASED lots with COA issued can be dispatched
+          const dispatchableLots = res.data.filter(lot => lot.holding_status === 'RELEASED' && lot.coa_issued === true);
+          setFgLots(dispatchableLots);
+        }
       });
     }
   }, [isOpen]);
@@ -78,10 +82,10 @@ export default function NewDispatchModal({ isOpen, onClose, onSuccess }: NewDisp
           >
             <option value="">Select FG Lot...</option>
             {fgLots.map(fg => (
-              <option key={fg.id} value={fg.id}>{fg.lot_no} ({fg.qty} LTR available)</option>
+              <option key={fg.id} value={fg.id}>{fg.lot_no} ({fg.qty} LTR) - COA: {fg.coa_no}</option>
             ))}
           </select>
-          {fgLots.length === 0 && <span style={{fontSize: '12px', color: '#F87171'}}>No Approved FG Lots available in warehouse.</span>}
+          {fgLots.length === 0 && <span style={{fontSize: '12px', color: '#F87171'}}>No RELEASED lots with COA available. Incubation lots cannot be dispatched.</span>}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

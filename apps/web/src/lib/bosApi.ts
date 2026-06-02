@@ -25,17 +25,26 @@ export const inventoryApi = {
     const { data, error } = await supabase.from('materials').insert([material]).select().single();
     return { data, error };
   },
-  createGrn: async (payload: { supplierId: string, materialId: string, qty: number, expectedExpiry: string }): Promise<ApiResult<void>> => {
+  createGrn: async (payload: { supplierId: string, materialId: string, qty: number, expectedExpiry: string, gstPercentage?: number, vehicleNo?: string, invoiceNo?: string }): Promise<ApiResult<void>> => {
     console.log(`RPC Call: create_grn_strict`, payload);
     const { error } = await supabase.rpc('create_grn_strict', { 
       p_supplier_id: payload.supplierId, 
       p_material_id: payload.materialId,
       p_qty: payload.qty,
       p_rate: 0,
-      p_invoice_no: 'INV-TEMP',
+      p_invoice_no: payload.invoiceNo || 'INV-TEMP',
       p_expected_expiry: payload.expectedExpiry,
       p_user_id: '00000000-0000-0000-0000-000000000000' 
     });
+    // Update the newly created GRN with the extra fields
+    if (!error) {
+      // Find the latest GRN for this supplier and material to update the extra fields
+      // This is a workaround since we can't easily change the RPC signature without dropping it
+      await supabase.from('grn').update({
+        gst_percentage: payload.gstPercentage || 0,
+        vehicle_no: payload.vehicleNo || ''
+      }).eq('supplier_id', payload.supplierId).eq('material_id', payload.materialId).order('created_at', { ascending: false }).limit(1);
+    }
     if (error) console.error("Supabase RPC Error:", error);
     await new Promise(r => setTimeout(r, 600));
     return { data: undefined, error };
@@ -47,6 +56,10 @@ export const inventoryApi = {
   getFgLots: async (): Promise<ApiResult<any[]>> => {
     const { data, error } = await supabase.from('fg_lots').select('*').order('created_at', { ascending: false });
     return { data: data || [], error };
+  },
+  updateFgLotStatus: async (lotId: string, status: string): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('fg_lots').update({ holding_status: status }).eq('id', lotId);
+    return { data: undefined, error };
   },
   getStorageLocations: async (): Promise<ApiResult<any[]>> => {
     try {
@@ -130,6 +143,17 @@ export const inventoryApi = {
     console.log(`RPC Call: approve_grn(${grnId})`);
     // Pass a dummy user_id for the prototype
     const { error } = await supabase.rpc('approve_grn', { p_grn_id: grnId, p_user_id: '00000000-0000-0000-0000-000000000000' });
+    
+    // Auto Expense Creation for raw material cost
+    if (!error) {
+      await supabase.from('expenses').insert({
+        category: 'RAW_MATERIAL',
+        amount: 15000, // Dummy calculated amount for prototype, in production this comes from qty * rate
+        description: `Raw Material Purchase - GRN Auto Expense (${grnId})`,
+        incurred_date: new Date().toISOString().split('T')[0]
+      });
+    }
+
     if (error) console.error("Supabase RPC Error:", error);
     // Simulate delay for UI if DB is offline
     await new Promise(r => setTimeout(r, 600));
@@ -218,6 +242,16 @@ export const qcApi = {
       p_new_fg_lot_no: payload.newFgLotNo,
       p_user_id: '00000000-0000-0000-0000-000000000000'
     });
+
+    if (!error && payload.verdict === 'PASS' && payload.newFgLotNo) {
+      // Update the newly created FG Lot with COA and holding status
+      await supabase.from('fg_lots').update({
+        coa_issued: payload.issueCoa || false,
+        coa_no: payload.issueCoa ? `COA-${payload.newFgLotNo}` : null,
+        holding_status: 'INCUBATION'
+      }).eq('lot_no', payload.newFgLotNo);
+    }
+
     if (error) console.error("Supabase RPC Error:", error);
     await new Promise(r => setTimeout(r, 600));
     return { data: undefined, error };
@@ -227,6 +261,20 @@ export const qcApi = {
     const { data, error } = await supabase.from('batches').select('*').in('status', ['RUNNING', 'PENDING_QC']);
     return { data: data || [], error };
   },
+  getRecipeQcParams: async (recipeId: string): Promise<ApiResult<any[]>> => {
+    const { data, error } = await supabase.from('recipe_qc_params').select('*').eq('recipe_id', recipeId);
+    return { data: data || [], error };
+  },
+  saveRecipeQcParam: async (payload: { recipeId: string, parameterName: string, minValue: number, maxValue: number, uom: string }): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('recipe_qc_params').insert({
+      recipe_id: payload.recipeId,
+      parameter_name: payload.parameterName,
+      min_value: payload.minValue,
+      max_value: payload.maxValue,
+      uom: payload.uom
+    });
+    return { data: undefined, error };
+  }
 };
 
 export const dispatchApi = {
@@ -278,8 +326,37 @@ export const financeApi = {
     return { data, error };
   },
   getInvoices: async (): Promise<ApiResult<any[]>> => {
-    const { data, error } = await supabase.from('invoices').select('*');
-    return { data: data || [], error };
+    // Select invoices and sum of their payments
+    const { data: invoices, error } = await supabase.from('invoices').select('*, invoice_payments(amount)');
+    if (invoices) {
+      const formatted = invoices.map((inv: any) => {
+        const paid_amount = inv.invoice_payments?.reduce((sum: number, p: any) => sum + Number(p.amount), 0) || 0;
+        return { ...inv, paid_amount };
+      });
+      return { data: formatted, error: null };
+    }
+    return { data: invoices || [], error };
+  },
+  recordPayment: async (payload: { invoiceId: string, amount: number, mode: string, reference: string }): Promise<ApiResult<void>> => {
+    // Insert payment
+    const { error } = await supabase.from('invoice_payments').insert({
+      invoice_id: payload.invoiceId,
+      amount: payload.amount,
+      payment_mode: payload.mode,
+      reference_no: payload.reference
+    });
+
+    if (!error) {
+      // Check if invoice is fully paid and update status
+      const { data: inv } = await supabase.from('invoices').select('amount').eq('id', payload.invoiceId).single();
+      const { data: payments } = await supabase.from('invoice_payments').select('amount').eq('invoice_id', payload.invoiceId);
+      
+      const totalPaid = payments?.reduce((sum: number, p: any) => sum + Number(p.amount), 0) || 0;
+      if (inv && totalPaid >= inv.amount) {
+        await supabase.from('invoices').update({ status: 'PAID' }).eq('id', payload.invoiceId);
+      }
+    }
+    return { data: undefined, error };
   },
   getGeneralLedger: async (): Promise<ApiResult<any[]>> => {
     const { data, error } = await supabase.from('general_ledger').select('*');
@@ -377,6 +454,23 @@ export const complianceApi = {
     await new Promise(r => setTimeout(r, 700));
     return { data: undefined, error: null };
   },
+  getAllergens: async (): Promise<ApiResult<any[]>> => {
+    const { data, error } = await supabase.from('allergens').select('*').order('name');
+    return { data: data || [], error };
+  },
+  getProductAllergens: async (): Promise<ApiResult<any[]>> => {
+    // Join product_allergens with materials(products) and allergens
+    const { data, error } = await supabase.from('product_allergens').select('*, allergens(*), materials(*)');
+    return { data: data || [], error };
+  },
+  mapProductAllergen: async (payload: { productId: string, allergenId: string, riskType: string }): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('product_allergens').insert({
+      product_id: payload.productId,
+      allergen_id: payload.allergenId,
+      risk_type: payload.riskType
+    });
+    return { data: undefined, error };
+  }
 };
 
 export const rndApi = {

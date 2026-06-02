@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Microscope, CheckCircle, XCircle } from 'lucide-react';
-import { productionApi, rndApi } from '../../lib/bosApi';
+import { qcApi } from '../../lib/bosApi';
+import QcDecisionModal from './QcDecisionModal';
 
 export default function BatchQc() {
   const [batches, setBatches] = useState<any[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<any>(null);
+  const [decision, setDecision] = useState<'PASS' | 'FAIL' | null>(null);
 
   useEffect(() => {
     loadHoldBatches();
   }, []);
 
   const loadHoldBatches = async () => {
-    const res = await productionApi.getBatches();
-    if (res.data) setBatches(res.data.filter((b:any) => b.status === 'QC_HOLD'));
+    const res = await qcApi.getPendingQc();
+    if (res.data) setBatches(res.data);
+  };
+
+  const handleDecision = (batch: any, type: 'PASS' | 'FAIL') => {
+    setSelectedBatch(batch);
+    setDecision(type);
   };
 
   return (
@@ -45,10 +53,18 @@ export default function BatchQc() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>
-                <button className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px', background: 'rgba(74, 222, 128, 0.1)', color: '#4ADE80', border: '1px solid #4ADE80' }}>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => handleDecision(b, 'PASS')}
+                  style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px', background: 'rgba(74, 222, 128, 0.1)', color: '#4ADE80', border: '1px solid #4ADE80' }}
+                >
                   <CheckCircle size={16} /> PASS
                 </button>
-                <button className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px', background: 'rgba(248, 113, 113, 0.1)', color: '#F87171', border: '1px solid #F87171' }}>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => handleDecision(b, 'FAIL')}
+                  style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px', background: 'rgba(248, 113, 113, 0.1)', color: '#F87171', border: '1px solid #F87171' }}
+                >
                   <XCircle size={16} /> FAIL
                 </button>
               </div>
@@ -56,6 +72,14 @@ export default function BatchQc() {
           ))
         )}
       </div>
+
+      <QcDecisionModal 
+        isOpen={!!decision}
+        onClose={() => setDecision(null)}
+        onSuccess={loadHoldBatches}
+        batch={selectedBatch}
+        decision={decision}
+      />
     </div>
   );
 }

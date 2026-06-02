@@ -5,47 +5,25 @@ type ApiResult<T> = { data: T | null; error: Error | null };
 
 export const inventoryApi = {
   getGrnList: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('grn').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    // Fallback Mock Data
-    return {
-      data: [
-        { id: '1', grn_no: 'GRN-1001', supplier: 'Alpha Chemicals', status: 'PENDING_QC', date: '2026-06-01' },
-        { id: '2', grn_no: 'GRN-1002', supplier: 'Beta Foods', status: 'APPROVED', date: '2026-05-28' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('grn').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
   },
   getSuppliers: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('suppliers').select('*').eq('status', 'ACTIVE');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    // Fallback Mock Data
-    return {
-      data: [
-        { id: 'sup1', name: 'Global Foods Inc.' },
-        { id: 'sup2', name: 'Alpha Chemicals' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('suppliers').select('*').eq('status', 'ACTIVE');
+    return { data: data || [], error };
   },
   getMaterials: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('materials').select('*').eq('status', 'ACTIVE');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    // Fallback Mock Data
-    return {
-      data: [
-        { id: 'mat1', name: 'Citric Acid', code: 'RM-01' },
-        { id: 'mat2', name: 'Sugar', code: 'RM-02' },
-        { id: 'mat3', name: 'Apple Concentrate', code: 'RM-03' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('materials').select('*').eq('status', 'ACTIVE');
+    return { data: data || [], error };
+  },
+  // Phase 22: Dynamic Master Data Insertion
+  addSupplier: async (supplier: any): Promise<ApiResult<any>> => {
+    const { data, error } = await supabase.from('suppliers').insert([supplier]).select().single();
+    return { data, error };
+  },
+  addMaterial: async (material: any): Promise<ApiResult<any>> => {
+    const { data, error } = await supabase.from('materials').insert([material]).select().single();
+    return { data, error };
   },
   createGrn: async (payload: { supplierId: string, materialId: string, qty: number, expectedExpiry: string }): Promise<ApiResult<void>> => {
     console.log(`RPC Call: create_grn_strict`, payload);
@@ -63,30 +41,12 @@ export const inventoryApi = {
     return { data: undefined, error };
   },
   getRmLots: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('rm_lots').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'l1', lot_no: 'LOT-A-99', ingredient: 'Citric Acid', qty: 500, expiry: '2027-01-01', status: 'APPROVED', location: 'Ambient-01' },
-        { id: 'l2', lot_no: 'LOT-B-88', ingredient: 'Sugar', qty: 100, expiry: '2026-08-15', status: 'QUARANTINE', location: 'Quarantine-Bay' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('rm_lots').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
   },
   getFgLots: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('fg_lots').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'fg1', lot_no: 'FG-BAT-400', product: 'Premium Apple Juice', qty: 1000, holding_status: 'RELEASED', location: 'FG-Bay-01' },
-        { id: 'fg2', lot_no: 'FG-BAT-401', product: 'Orange Concentrate', qty: 500, holding_status: 'INCUBATION', location: 'Cold-Room-1' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('fg_lots').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
   },
   getStorageLocations: async (): Promise<ApiResult<any[]>> => {
     try {
@@ -178,31 +138,24 @@ export const inventoryApi = {
 };
 
 export const productionApi = {
+
   getRecipes: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('recipes').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'r1', product: 'Premium Apple Juice', version: 2, status: 'ACTIVE' },
-        { id: 'r2', product: 'Orange Concentrate', version: 1, status: 'ACTIVE' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('recipes').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
   },
   getBatches: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('batches').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'b1', batch_no: 'BAT-405', recipe: 'Premium Apple Juice', status: 'RUNNING', expected_yield: 1000 },
-        { id: 'b2', batch_no: 'BAT-406', recipe: 'Orange Concentrate', status: 'PLANNED', expected_yield: 500 },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  createBatch: async (payload: any): Promise<ApiResult<any>> => {
+    const batchNo = 'BAT-' + Date.now().toString().slice(-4);
+    const { data, error } = await supabase.from('batches').insert([{
+      batch_no: batchNo,
+      recipe_id: payload.recipeId,
+      expected_yield: payload.expectedYield,
+      status: 'PLANNED'
+    }]).select().single();
+    return { data, error };
   },
   completeBatch: async (batchId: string, fgQty: number): Promise<ApiResult<void>> => {
     console.log(`RPC Call: complete_batch(${batchId}, ${fgQty})`);
@@ -270,32 +223,28 @@ export const qcApi = {
     return { data: undefined, error };
   },
   getPendingQc: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('fg_lots').select('*').eq('qc_status', 'PENDING');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'fg1', lot_no: 'FG-BAT-400', product: 'Premium Apple Juice', qty: 1000, qc_status: 'PENDING' },
-      ],
-      error: null
-    };
+    // In our simplified flow, we will fetch batches that are in 'RUNNING' or 'PENDING_QC' status
+    const { data, error } = await supabase.from('batches').select('*').in('status', ['RUNNING', 'PENDING_QC']);
+    return { data: data || [], error };
   },
 };
 
 export const dispatchApi = {
   getDispatches: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('dispatches').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'd1', dispatch_no: 'DSP-8001', customer: 'Global Foods Inc', status: 'DRAFT', date: '2026-06-01' },
-        { id: 'd2', dispatch_no: 'DSP-8002', customer: 'Local Mart', status: 'SHIPPED', date: '2026-05-30' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('dispatches').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  createDispatch: async (payload: any): Promise<ApiResult<any>> => {
+    const dispatchNo = 'DSP-' + Date.now().toString().slice(-5);
+    const { data, error } = await supabase.from('dispatches').insert([{
+      dispatch_no: dispatchNo,
+      customer: payload.customer,
+      fg_lot_id: payload.fgLotId,
+      qty: payload.qty,
+      status: 'DRAFT',
+      date: new Date().toISOString()
+    }]).select().single();
+    return { data, error };
   },
   confirmDispatch: async (dispatchId: string): Promise<ApiResult<void>> => {
     console.log(`RPC Call: confirm_dispatch(${dispatchId})`);
@@ -309,58 +258,32 @@ export const dispatchApi = {
 export const financeApi = {
   // Phase 18: Finance & Accounts Methods
   getChartOfAccounts: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('chart_of_accounts').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'coa1', account_code: '1000', account_name: 'Cash in Hand', account_type: 'ASSET', status: 'ACTIVE' },
-        { id: 'coa2', account_code: '4000', account_name: 'Sales Revenue', account_type: 'REVENUE', status: 'ACTIVE' },
-        { id: 'coa3', account_code: '5000', account_name: 'Raw Material Purchases', account_type: 'EXPENSE', status: 'ACTIVE' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('chart_of_accounts').select('*');
+    return { data: data || [], error };
   },
   getPurchaseOrders: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('purchase_orders').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'po1', po_number: 'PO-26-001', supplier_id: 'sup1', total_amount: 150000, status: 'APPROVED', expected_delivery: '2026-06-15' },
-        { id: 'po2', po_number: 'PO-26-002', supplier_id: 'sup2', total_amount: 45000, status: 'DRAFT', expected_delivery: '2026-06-20' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  createPurchaseOrder: async (payload: any): Promise<ApiResult<any>> => {
+    // Generate a simple unique PO number
+    const poNumber = 'PO-' + Date.now().toString().slice(-6);
+    const { data, error } = await supabase.from('purchase_orders').insert([{
+      po_number: poNumber,
+      supplier_id: payload.supplierId,
+      total_amount: payload.totalAmount,
+      expected_delivery: payload.expectedDelivery,
+      status: 'APPROVED'
+    }]).select().single();
+    return { data, error };
   },
   getInvoices: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('invoices').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'i1', invoice_number: 'INV-9002', type: 'SALES', total_amount: 45000, status: 'PAID', due_date: '2026-05-30' },
-        { id: 'i2', invoice_number: 'INV-9003', type: 'SALES', total_amount: 12000, status: 'UNPAID', due_date: '2026-06-10' },
-        { id: 'i3', invoice_number: 'BILL-101', type: 'PURCHASE', total_amount: 55000, status: 'UNPAID', due_date: '2026-06-15' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('invoices').select('*');
+    return { data: data || [], error };
   },
   getGeneralLedger: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('general_ledger').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'gl1', transaction_date: '2026-06-01', reference_type: 'INVOICE', debit: 45000, credit: 0, narration: 'Sales to Local Mart' },
-        { id: 'gl2', transaction_date: '2026-06-01', reference_type: 'INVOICE', debit: 0, credit: 45000, narration: 'Sales Revenue' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('general_ledger').select('*');
+    return { data: data || [], error };
   },
   postJournalEntry: async (payload: any): Promise<ApiResult<void>> => {
     console.log(`RPC Call: post_journal_entry`, payload);
@@ -379,43 +302,16 @@ export const financeApi = {
 export const hrApi = {
   // Phase 19: HRMS & Payroll Methods
   getEmployees: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('employees').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'emp1', employee_code: 'EMP-001', first_name: 'Rahul', last_name: 'Sharma', department: 'Production', designation: 'Supervisor', base_salary: 35000, status: 'ACTIVE' },
-        { id: 'emp2', employee_code: 'EMP-002', first_name: 'Amit', last_name: 'Kumar', department: 'QC', designation: 'Analyst', base_salary: 28000, status: 'ACTIVE' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('employees').select('*');
+    return { data: data || [], error };
   },
   getAttendance: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('attendance_logs').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'att1', employee_id: 'emp1', date: new Date().toISOString().split('T')[0], status: 'PRESENT', punch_in: '08:00 AM' },
-        { id: 'att2', employee_id: 'emp2', date: new Date().toISOString().split('T')[0], status: 'PRESENT', punch_in: '08:15 AM' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('attendance_logs').select('*');
+    return { data: data || [], error };
   },
   getPayrollRecords: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('payroll_records').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'pay1', employee_id: 'emp1', pay_period: '2026-05', base_pay: 35000, allowances: 2000, deductions: 500, net_pay: 36500, status: 'PAID' },
-        { id: 'pay2', employee_id: 'emp2', pay_period: '2026-05', base_pay: 28000, allowances: 1000, deductions: 200, net_pay: 28800, status: 'PROCESSED' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('payroll_records').select('*');
+    return { data: data || [], error };
   },
   processPayroll: async (payload: any): Promise<ApiResult<void>> => {
     console.log(`RPC Call: process_payroll`, payload);
@@ -434,18 +330,8 @@ export const hrApi = {
 export const dmsApi = {
   // Phase 20: DMS & Analytics Methods
   getDocuments: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('documents').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'doc1', title: 'FSSAI License 2026', document_type: 'CERTIFICATE', department: 'Compliance', valid_until: '2027-01-01', status: 'ACTIVE' },
-        { id: 'doc2', title: 'ISO 9001:2015 Audit Report', document_type: 'AUDIT_REPORT', department: 'QA', valid_until: '2026-12-31', status: 'ACTIVE' },
-        { id: 'doc3', title: 'Supplier Agreement - Alpha Chem', document_type: 'AGREEMENT', department: 'Procurement', valid_until: '2028-05-01', status: 'ACTIVE' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('documents').select('*');
+    return { data: data || [], error };
   },
 };
 
@@ -476,30 +362,12 @@ export const complianceApi = {
     };
   },
   getSops: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('sop_register').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 'sop1', sop_code: 'SOP-HYG-01', title: 'Personal Hygiene Policy', department: 'HR', status: 'ACTIVE', next_review_date: '2026-12-01' },
-        { id: 'sop2', sop_code: 'SOP-CLN-02', title: 'CIP Cleaning Procedure', department: 'Production', status: 'ACTIVE', next_review_date: '2026-10-15' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('sop_register').select('*');
+    return { data: data || [], error };
   },
   getTrainingRecords: async (): Promise<ApiResult<any[]>> => {
-    try {
-      const { data, error } = await supabase.from('training_matrix').select('*');
-      if (data && data.length > 0) return { data, error };
-    } catch(e) {}
-    return {
-      data: [
-        { id: 't1', employee_name: 'Rahul Sharma', training_topic: 'Allergen Control', training_date: '2026-05-20', status: 'COMPLETED' },
-        { id: 't2', employee_name: 'Amit Kumar', training_topic: 'Personal Hygiene', training_date: '2026-06-05', status: 'PENDING' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('training_matrix').select('*');
+    return { data: data || [], error };
   },
   initiateRecall: async (batchId: string): Promise<ApiResult<void>> => {
     await new Promise(r => setTimeout(r, 800));

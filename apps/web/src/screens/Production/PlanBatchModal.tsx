@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../../components/ui/Modal';
 import { Beaker } from 'lucide-react';
+import { productionApi } from '../../lib/bosApi';
 
 interface PlanBatchModalProps {
   isOpen: boolean;
@@ -10,13 +11,26 @@ interface PlanBatchModalProps {
 
 export default function PlanBatchModal({ isOpen, onClose, onSuccess }: PlanBatchModalProps) {
   const [loading, setLoading] = useState(false);
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [recipeId, setRecipeId] = useState('');
+  const [yieldQty, setYieldQty] = useState('');
+
+  React.useEffect(() => {
+    if (isOpen) {
+      productionApi.getRecipes().then(res => {
+        if (res.data) setRecipes(res.data);
+      });
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API call to create batch
-    await new Promise(r => setTimeout(r, 800));
+    await productionApi.createBatch({
+      recipeId,
+      expectedYield: Number(yieldQty)
+    });
     
     setLoading(false);
     onSuccess();
@@ -31,6 +45,8 @@ export default function PlanBatchModal({ isOpen, onClose, onSuccess }: PlanBatch
           <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Master Recipe</label>
           <select 
             required
+            value={recipeId}
+            onChange={(e) => setRecipeId(e.target.value)}
             style={{ 
               padding: '12px', 
               borderRadius: '8px', 
@@ -40,9 +56,11 @@ export default function PlanBatchModal({ isOpen, onClose, onSuccess }: PlanBatch
             }}
           >
             <option value="">Select Recipe...</option>
-            <option value="R-01">Premium Apple Juice (v2)</option>
-            <option value="R-02">Orange Concentrate (v1)</option>
+            {recipes.map(r => (
+              <option key={r.id} value={r.id}>{r.name}</option>
+            ))}
           </select>
+          {recipes.length === 0 && <span style={{fontSize: '12px', color: '#F87171'}}>No recipes found.</span>}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -51,6 +69,8 @@ export default function PlanBatchModal({ isOpen, onClose, onSuccess }: PlanBatch
             type="number" 
             required
             min="10"
+            value={yieldQty}
+            onChange={(e) => setYieldQty(e.target.value)}
             placeholder="e.g. 1000"
             style={{ 
               padding: '12px', 

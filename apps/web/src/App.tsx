@@ -3,6 +3,8 @@ import { Routes, Route, NavLink } from 'react-router-dom';
 import { LayoutDashboard, Package, Beaker, Truck, FileCheck, Search, Settings, ShieldCheck, FlaskConical, Users, Folder } from 'lucide-react';
 
 import MasterAnalytics from './screens/DMS/MasterAnalytics';
+import { ProtectedRoute } from './lib/ProtectedRoute';
+import { useAuth } from './lib/AuthContext';
 
 import InventoryLayout from './screens/Inventory/InventoryLayout';
 import ProductionLayout from './screens/Production/ProductionLayout';
@@ -51,6 +53,8 @@ const Placeholder = ({ title }: { title: string }) => (
 );
 
 export default function App() {
+  const { user } = useAuth();
+  
   return (
     <div className="app-layout">
       {/* Sidebar */}
@@ -109,12 +113,12 @@ export default function App() {
       <main className="main-content">
         <header className="topbar">
           <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: 500 }}>
-            Phase 1: Foundation & First Vertical Slice
+            Phase 21: RBAC & Security Active
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600 }}>Admin User</span>
+            <span style={{ fontSize: '14px', fontWeight: 600 }}>{user?.name || 'Guest'}</span>
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0B0F19', fontWeight: 'bold' }}>
-              A
+              {user?.name?.charAt(0) || 'G'}
             </div>
           </div>
         </header>
@@ -122,7 +126,11 @@ export default function App() {
         <div className="page-container">
           <Routes>
             <Route path="/" element={<MasterAnalytics />} />
-            <Route path="/inventory/*" element={<InventoryLayout />}>
+            <Route path="/inventory/*" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'PURCHASE_MANAGER']}>
+                <InventoryLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<GrnDashboard />} />
               <Route path="rm-store" element={<RmStore />} />
               <Route path="fg-store" element={<FgStore />} />
@@ -130,11 +138,19 @@ export default function App() {
               <Route path="locations" element={<StorageLocations />} />
               <Route path="ledger" element={<StockLedger />} />
             </Route>
-            <Route path="/rnd/*" element={<RnDLayout />}>
+            <Route path="/rnd/*" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'PRODUCTION_MANAGER']}>
+                <RnDLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<RecipeEngine />} />
               <Route path="notebook" element={<LabNotebook />} />
             </Route>
-            <Route path="/production/*" element={<ProductionLayout />}>
+            <Route path="/production/*" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'PRODUCTION_MANAGER', 'PRODUCTION_OPERATOR']}>
+                <ProductionLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<BatchDashboard />} />
               <Route path="batches" element={<BatchDashboard />} />
               <Route path="monitor" element={<FloorMonitor />} />
@@ -143,9 +159,21 @@ export default function App() {
               <Route path="equipment" element={<Equipment />} />
               <Route path="logs" element={<DailyLogs />} />
             </Route>
-            <Route path="/qc" element={<BatchQc />} />
-            <Route path="/logistics/*" element={<LogisticsLayout />} />
-            <Route path="/compliance/*" element={<ComplianceLayout />}>
+            <Route path="/qc" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'QA_OFFICER']}>
+                <BatchQc />
+              </ProtectedRoute>
+            } />
+            <Route path="/logistics/*" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DISPATCH_MANAGER']}>
+                <LogisticsLayout />
+              </ProtectedRoute>
+            } />
+            <Route path="/compliance/*" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'QA_OFFICER', 'SANITATION_OFFICER']}>
+                <ComplianceLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<HaccpPrpDashboard />} />
               <Route path="haccp" element={<HaccpPrpDashboard />} />
               <Route path="capa" element={<RecallCapaTracker />} />
@@ -153,13 +181,21 @@ export default function App() {
               <Route path="training" element={<TrainingMatrix />} />
               <Route path="audits" element={<TrainingAudits />} />
             </Route>
-            <Route path="/finance/*" element={<FinanceLayout />}>
+            <Route path="/finance/*" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ACCOUNT_MANAGER']}>
+                <FinanceLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<Invoicing />} />
               <Route path="orders" element={<PurchaseOrders />} />
               <Route path="invoices" element={<Invoicing />} />
               <Route path="ledger" element={<GeneralLedger />} />
             </Route>
-            <Route path="/hr/*" element={<HrLayout />}>
+            <Route path="/hr/*" element={
+              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR_MANAGER']}>
+                <HrLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<EmployeeDirectory />} />
               <Route path="directory" element={<EmployeeDirectory />} />
               <Route path="attendance" element={<AttendanceTracker />} />

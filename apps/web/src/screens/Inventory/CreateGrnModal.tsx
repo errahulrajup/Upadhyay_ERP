@@ -73,6 +73,7 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
+          {suppliers.length === 0 && <span style={{fontSize: '12px', color: '#F87171'}}>No suppliers found. Add one in Settings.</span>}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -94,6 +95,7 @@ export default function CreateGrnModal({ isOpen, onClose, onSuccess }: CreateGrn
               <option key={m.id} value={m.id}>{m.code} - {m.name}</option>
             ))}
           </select>
+          {materials.length === 0 && <span style={{fontSize: '12px', color: '#F87171'}}>No materials found. Add one in Settings.</span>}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

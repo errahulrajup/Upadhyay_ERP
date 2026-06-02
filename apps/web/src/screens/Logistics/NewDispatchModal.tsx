@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../../components/ui/Modal';
 import { Truck } from 'lucide-react';
+import { dispatchApi, inventoryApi } from '../../lib/bosApi';
 
 interface NewDispatchModalProps {
   isOpen: boolean;
@@ -10,13 +11,29 @@ interface NewDispatchModalProps {
 
 export default function NewDispatchModal({ isOpen, onClose, onSuccess }: NewDispatchModalProps) {
   const [loading, setLoading] = useState(false);
+  const [fgLots, setFgLots] = useState<any[]>([]);
+  const [customer, setCustomer] = useState('');
+  const [fgLotId, setFgLotId] = useState('');
+  const [date, setDate] = useState('');
+  
+  React.useEffect(() => {
+    if (isOpen) {
+      inventoryApi.getFgLots().then(res => {
+        if (res.data) setFgLots(res.data);
+      });
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API call to create dispatch
-    await new Promise(r => setTimeout(r, 800));
+    // We assume qty is fixed for now or we could add a qty field
+    await dispatchApi.createDispatch({
+      customer,
+      fgLotId,
+      qty: 100 // placeholder qty for simplicity
+    });
     
     setLoading(false);
     onSuccess();
@@ -32,6 +49,8 @@ export default function NewDispatchModal({ isOpen, onClose, onSuccess }: NewDisp
           <input 
             type="text" 
             required
+            value={customer}
+            onChange={e => setCustomer(e.target.value)}
             placeholder="e.g. Mega Store"
             style={{ 
               padding: '12px', 
@@ -47,6 +66,8 @@ export default function NewDispatchModal({ isOpen, onClose, onSuccess }: NewDisp
           <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Finished Good Lot</label>
           <select 
             required
+            value={fgLotId}
+            onChange={e => setFgLotId(e.target.value)}
             style={{ 
               padding: '12px', 
               borderRadius: '8px', 
@@ -56,9 +77,11 @@ export default function NewDispatchModal({ isOpen, onClose, onSuccess }: NewDisp
             }}
           >
             <option value="">Select FG Lot...</option>
-            <option value="FG-400">FG-BAT-400 (Premium Apple Juice)</option>
-            <option value="FG-401">FG-BAT-401 (Orange Concentrate)</option>
+            {fgLots.map(fg => (
+              <option key={fg.id} value={fg.id}>{fg.lot_no} ({fg.qty} LTR available)</option>
+            ))}
           </select>
+          {fgLots.length === 0 && <span style={{fontSize: '12px', color: '#F87171'}}>No Approved FG Lots available in warehouse.</span>}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -66,6 +89,8 @@ export default function NewDispatchModal({ isOpen, onClose, onSuccess }: NewDisp
           <input 
             type="date" 
             required
+            value={date}
+            onChange={e => setDate(e.target.value)}
             style={{ 
               padding: '12px', 
               borderRadius: '8px', 

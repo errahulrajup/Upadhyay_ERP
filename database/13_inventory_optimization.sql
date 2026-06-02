@@ -1,5 +1,24 @@
--- Upadhyay ERP: Inventory Optimization Migration (Phase 28)
+-- Upadhyay ERP: Inventory Optimization Migration (Phase 28 - FIXED)
 -- Run this script in your Supabase SQL Editor
+
+-- 0. Ensure base tables exist before altering them
+CREATE TABLE IF NOT EXISTS materials (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'RAW_MATERIAL',
+    uom VARCHAR(20) NOT NULL DEFAULT 'kg',
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS storage_locations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    capacity_kg DECIMAL(10,2) DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
 -- 1. Add reorder_level to materials table
 ALTER TABLE materials ADD COLUMN IF NOT EXISTS reorder_level DECIMAL(10,2) DEFAULT 0.00;
@@ -18,6 +37,15 @@ CREATE TABLE IF NOT EXISTS stock_adjustments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Note: In a production Supabase instance, you would want to add foreign keys for lot_id,
--- but since it can point to two different tables (Polymorphic), we rely on application logic 
--- or create separate tables/columns. For simplicity, we use lot_type to distinguish.
+-- Insert default storage locations if none exist
+INSERT INTO storage_locations (code, name, type, capacity_kg)
+SELECT 'AMB-01', 'Ambient Warehouse 1', 'AMBIENT', 50000
+WHERE NOT EXISTS (SELECT 1 FROM storage_locations WHERE code = 'AMB-01');
+
+INSERT INTO storage_locations (code, name, type, capacity_kg)
+SELECT 'COLD-01', 'Cold Room Alpha', 'COLD_ROOM', 10000
+WHERE NOT EXISTS (SELECT 1 FROM storage_locations WHERE code = 'COLD-01');
+
+INSERT INTO storage_locations (code, name, type, capacity_kg)
+SELECT 'FG-BAY', 'Finished Goods Bay', 'FG_BAY', 20000
+WHERE NOT EXISTS (SELECT 1 FROM storage_locations WHERE code = 'FG-BAY');

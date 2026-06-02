@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { complianceApi } from '../../lib/bosApi';
-import { ShieldAlert, CheckCircle } from 'lucide-react';
+import { ShieldAlert, CheckCircle, FilePlus } from 'lucide-react';
+import CreateCapaModal from './CreateCapaModal';
 
 export default function RecallCapaTracker() {
   const [recalls, setRecalls] = useState<any[]>([]);
   const [capas, setCapas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCapaModalOpen, setIsCapaModalOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -22,6 +24,11 @@ export default function RecallCapaTracker() {
     setLoading(false);
   };
 
+  const handleCloseCapa = async (capaId: string) => {
+    await complianceApi.closeCapa(capaId);
+    loadData();
+  };
+
   return (
     <div className="animate-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -29,9 +36,14 @@ export default function RecallCapaTracker() {
           <h1>Recall & CAPA Tracker</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>Manage product recalls and corrective actions linked to traceability.</p>
         </div>
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--danger-color)' }}>
-          <ShieldAlert size={18} /> Initiate Recall
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="btn-secondary" onClick={() => setIsCapaModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FilePlus size={18} /> Raise CAPA
+          </button>
+          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--danger-color)' }}>
+            <ShieldAlert size={18} /> Initiate Recall
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -89,7 +101,7 @@ export default function RecallCapaTracker() {
                       </td>
                       <td style={{ padding: '16px' }}>
                         {c.status === 'OPEN' && (
-                          <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--success-color)' }}>
+                          <button onClick={() => handleCloseCapa(c.id)} className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--success-color)' }}>
                             <CheckCircle size={14} /> Close
                           </button>
                         )}
@@ -102,6 +114,14 @@ export default function RecallCapaTracker() {
           </div>
 
         </div>
+      )}
+
+      {isCapaModalOpen && (
+        <CreateCapaModal
+          isOpen={isCapaModalOpen}
+          onClose={() => setIsCapaModalOpen(false)}
+          onSuccess={loadData}
+        />
       )}
     </div>
   );

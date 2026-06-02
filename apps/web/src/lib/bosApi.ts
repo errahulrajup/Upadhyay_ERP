@@ -464,29 +464,25 @@ export const dmsApi = {
 
 export const complianceApi = {
   getHaccpRecords: async (): Promise<ApiResult<any[]>> => {
-    return {
-      data: [
-        { id: 'h1', control_point: 'CCP-1: Pasteurization', status: 'COMPLIANT', recorded_at: '2026-06-01 10:00 AM' },
-        { id: 'h2', control_point: 'CCP-2: Metal Detection', status: 'DEVIATION', recorded_at: '2026-06-01 11:30 AM' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('haccp_logs').select('*').order('recorded_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  createHaccpLog: async (payload: any): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('haccp_logs').insert([payload]);
+    return { data: undefined, error };
   },
   getRecalls: async (): Promise<ApiResult<any[]>> => {
-    return {
-      data: [
-        { id: 'rc1', recall_no: 'REC-26-001', affected_lot: 'FG-BAT-399', status: 'ACTIVE', severity: 'HIGH' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('product_recalls').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
   },
   getCapa: async (): Promise<ApiResult<any[]>> => {
-    return {
-      data: [
-        { id: 'c1', capa_no: 'CAPA-40', source: 'CCP-2 Deviation', status: 'OPEN', owner: 'QA Lead' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('capa_records').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  createCapa: async (payload: any): Promise<ApiResult<void>> => {
+    payload.capa_no = 'CAPA-' + Date.now().toString().slice(-4);
+    const { error } = await supabase.from('capa_records').insert([payload]);
+    return { data: undefined, error };
   },
   getSops: async (): Promise<ApiResult<any[]>> => {
     const { data, error } = await supabase.from('sop_register').select('*');
@@ -496,13 +492,14 @@ export const complianceApi = {
     const { data, error } = await supabase.from('training_matrix').select('*');
     return { data: data || [], error };
   },
-  initiateRecall: async (batchId: string): Promise<ApiResult<void>> => {
-    await new Promise(r => setTimeout(r, 800));
-    return { data: undefined, error: null };
+  initiateRecall: async (payload: any): Promise<ApiResult<void>> => {
+    payload.recall_no = 'REC-' + Date.now().toString().slice(-4);
+    const { error } = await supabase.from('product_recalls').insert([payload]);
+    return { data: undefined, error };
   },
   closeCapa: async (capaId: string): Promise<ApiResult<void>> => {
-    await new Promise(r => setTimeout(r, 700));
-    return { data: undefined, error: null };
+    const { error } = await supabase.from('capa_records').update({ status: 'CLOSED', closed_at: new Date().toISOString() }).eq('id', capaId);
+    return { data: undefined, error };
   },
   getAllergens: async (): Promise<ApiResult<any[]>> => {
     const { data, error } = await supabase.from('allergens').select('*').order('name');
@@ -525,13 +522,12 @@ export const complianceApi = {
 
 export const rndApi = {
   getDraftRecipes: async (): Promise<ApiResult<any[]>> => {
-    return {
-      data: [
-        { id: 'rd1', name: 'Experimental Mango Juice V3', status: 'DRAFT', author: 'Dr. Smith' },
-        { id: 'rd2', name: 'Low Sugar Apple Base', status: 'PENDING_APPROVAL', author: 'J. Doe' },
-      ],
-      error: null
-    };
+    const { data, error } = await supabase.from('rnd_trials').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  createDraftRecipe: async (payload: any): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('rnd_trials').insert([payload]);
+    return { data: undefined, error };
   }
 };
 

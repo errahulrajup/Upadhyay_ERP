@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { complianceApi } from '../../lib/bosApi';
 import { ShieldCheck, AlertTriangle } from 'lucide-react';
+import CreateHaccpModal from './CreateHaccpModal';
 
 export default function HaccpPrpDashboard() {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadRecords();
@@ -24,8 +26,8 @@ export default function HaccpPrpDashboard() {
           <h1>HACCP & PRP Logs</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>Monitor Critical Control Points and Prerequisite Programs.</p>
         </div>
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ShieldCheck size={18} /> New Entry
+        <button className="btn-primary" onClick={() => setIsModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldCheck size={18} /> Log CCP Reading
         </button>
       </div>
 
@@ -60,6 +62,14 @@ export default function HaccpPrpDashboard() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {isModalOpen && (
+        <CreateHaccpModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={loadRecords}
+        />
       )}
     </div>
   );

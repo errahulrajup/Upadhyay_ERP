@@ -5,13 +5,20 @@ import CreateGrnModal from './CreateGrnModal';
 
 export default function GrnDashboard() {
   const [grns, setGrns] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadGrns();
+    loadAlerts();
   }, []);
+
+  const loadAlerts = async () => {
+    const { data } = await inventoryApi.getLowStockAlerts();
+    if (data) setAlerts(data);
+  };
 
   const loadGrns = async () => {
     setLoading(true);
@@ -43,6 +50,25 @@ export default function GrnDashboard() {
           <PackagePlus size={18} /> New GRN
         </button>
       </div>
+
+      {alerts.length > 0 && (
+        <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '8px', background: 'rgba(248, 113, 113, 0.1)', border: '1px solid #F87171' }}>
+          <h3 style={{ color: '#F87171', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <Clock size={18} /> Low Stock Alerts
+          </h3>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {alerts.map(a => (
+              <div key={a.id} style={{ background: '#0F172A', padding: '12px', borderRadius: '6px', border: '1px solid var(--glass-border)', flex: '1 1 250px' }}>
+                <strong style={{ color: 'white' }}>{a.name}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Current: <span style={{ color: '#F87171', fontWeight: 'bold' }}>{a.current_stock}</span></span>
+                  <span style={{ color: 'var(--text-muted)' }}>Reorder: {a.reorder_level}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <CreateGrnModal 
         isOpen={isModalOpen} 

@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Box, FileCheck, ArrowRightLeft } from 'lucide-react';
+import { Box, FileCheck, ArrowRightLeft, Printer, Scale } from 'lucide-react';
 import { inventoryApi } from '../../lib/bosApi';
+import StockTransferModal from './StockTransferModal';
+import LabelPrintModal from './LabelPrintModal';
+import StockAuditModal from './StockAuditModal';
 
 export default function FgStore() {
   const [lots, setLots] = useState<any[]>([]);
+  const [selectedTransferLot, setSelectedTransferLot] = useState<any>(null);
+  const [selectedPrintLot, setSelectedPrintLot] = useState<any>(null);
+  const [selectedAuditLot, setSelectedAuditLot] = useState<any>(null);
 
   useEffect(() => {
     loadLots();
@@ -74,12 +80,57 @@ export default function FgStore() {
                     <option value="QUARANTINE">Quarantine</option>
                     <option value="HOLD">Hold</option>
                   </select>
+                  <button className="btn-secondary" onClick={() => setSelectedPrintLot(l)} style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Printer size={14} /> Print
+                  </button>
+                  <button className="btn-secondary" onClick={() => setSelectedAuditLot(l)} style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Scale size={14} /> Audit
+                  </button>
+                  <button className="btn-secondary" onClick={() => setSelectedTransferLot(l)} style={{ fontSize: '12px', padding: '4px 8px', marginLeft: '8px' }}>
+                    Transfer
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {selectedTransferLot && (
+        <StockTransferModal
+          isOpen={true}
+          onClose={() => setSelectedTransferLot(null)}
+          onSuccess={loadLots}
+          lotId={selectedTransferLot.id}
+          lotNo={selectedTransferLot.lot_no}
+          lotType="FG"
+          currentLocation={selectedTransferLot.location}
+        />
+      )}
+
+      {selectedPrintLot && (
+        <LabelPrintModal
+          isOpen={true}
+          onClose={() => setSelectedPrintLot(null)}
+          lotNo={selectedPrintLot.lot_no}
+          materialName={selectedPrintLot.product}
+          qty={selectedPrintLot.qty}
+          expiry={'N/A'}
+          type="FG"
+        />
+      )}
+
+      {selectedAuditLot && (
+        <StockAuditModal
+          isOpen={true}
+          onClose={() => setSelectedAuditLot(null)}
+          onSuccess={loadLots}
+          lotId={selectedAuditLot.id}
+          lotNo={selectedAuditLot.lot_no}
+          lotType="FG"
+          currentQty={selectedAuditLot.qty}
+        />
+      )}
     </div>
   );
 }

@@ -6,12 +6,16 @@ export default function TraceabilityTree() {
   const [lotNo, setLotNo] = useState('');
   const [treeData, setTreeData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   const handleSearch = async () => {
     if (!lotNo) return;
     setLoading(true);
+    setNotFound(false);
+    setTreeData(null);
     const { data } = await traceabilityApi.getTraceabilityTree(lotNo);
     if (data) setTreeData(data);
+    else setNotFound(true);
     setLoading(false);
   };
 

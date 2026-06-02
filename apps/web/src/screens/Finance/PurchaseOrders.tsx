@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Plus, ShoppingCart, X } from 'lucide-react';
 import { financeApi, inventoryApi } from '../../lib/bosApi';
+import { supabase } from '../../lib/supabase';
 
 export default function PurchaseOrders() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -17,7 +18,12 @@ export default function PurchaseOrders() {
 
   const loadOrders = async () => {
     const res = await financeApi.getPurchaseOrders();
-    if (res.data) setOrders(res.data);
+    // Join supplier names
+    if (res.data) {
+      const { data: sups } = await supabase.from('suppliers').select('id, name');
+      const supMap = Object.fromEntries((sups || []).map((s: any) => [s.id, s.name]));
+      setOrders(res.data.map((po: any) => ({ ...po, supplier_name: supMap[po.supplier_id] || po.supplier_id })));
+    }
   };
 
   const loadSuppliers = async () => {
@@ -63,7 +69,7 @@ export default function PurchaseOrders() {
             {orders.map(po => (
               <tr key={po.id}>
                 <td><strong>{po.po_number}</strong></td>
-                <td>{po.supplier_id}</td>
+                <td>{po.supplier_name || po.supplier_id}</td>
                 <td>{po.expected_delivery}</td>
                 <td>₹{po.total_amount?.toLocaleString()}</td>
                 <td>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { productionApi } from '../../lib/bosApi';
+import { supabase } from '../../lib/supabase';
 import { Beaker, Play, CheckCircle } from 'lucide-react';
 import PlanBatchModal from './PlanBatchModal';
 
@@ -18,6 +19,12 @@ export default function BatchDashboard() {
     const { data } = await productionApi.getBatches();
     if (data) setBatches(data);
     setLoading(false);
+  };
+
+  const handleStart = async (batchId: string) => {
+    const { error } = await supabase.from('batches').update({ status: 'RUNNING' }).eq('id', batchId);
+    if (!error) await loadBatches();
+    else alert('Failed to start batch.');
   };
 
   const handleComplete = async (batch: any) => {
@@ -73,7 +80,7 @@ export default function BatchDashboard() {
               
               <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: 'var(--glass-border)', display: 'flex', gap: '12px' }}>
                 {batch.status === 'PLANNED' && (
-                  <button className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                  <button onClick={() => handleStart(batch.id)} className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px' }}>
                     <Play size={16} /> Start Batch
                   </button>
                 )}

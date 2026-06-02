@@ -441,6 +441,20 @@ export const financeApi = {
     await new Promise(r => setTimeout(r, 600));
     return { data: undefined, error };
   },
+  createInvoice: async (payload: { type: 'SALES' | 'PURCHASE'; entityId: string; amount: number; dueDate: string; dispatchId?: string | undefined; grnId?: string | undefined }): Promise<ApiResult<any>> => {
+    const invoiceNumber = (payload.type === 'SALES' ? 'INV-S-' : 'INV-P-') + Date.now().toString().slice(-6);
+    const { data, error } = await supabase.from('invoices').insert([{
+      invoice_number: invoiceNumber,
+      type: payload.type,
+      entity_id: payload.entityId,
+      total_amount: payload.amount,
+      due_date: payload.dueDate,
+      status: 'UNPAID',
+      dispatch_id: payload.dispatchId || null,
+      grn_id: payload.grnId || null
+    }]).select().single();
+    return { data, error };
+  },
 };
 
 export const hrApi = {
@@ -485,6 +499,18 @@ export const dmsApi = {
   getDocuments: async (): Promise<ApiResult<any[]>> => {
     const { data, error } = await supabase.from('documents').select('*');
     return { data: data || [], error };
+  },
+  uploadDocument: async (payload: { title: string; documentType: string; fileUrl: string; validFrom?: string | undefined; validUntil?: string | undefined; department?: string | undefined }): Promise<ApiResult<void>> => {
+    const { error } = await supabase.from('documents').insert([{
+      title: payload.title,
+      document_type: payload.documentType,
+      file_url: payload.fileUrl,
+      valid_from: payload.validFrom || null,
+      valid_until: payload.validUntil || null,
+      department: payload.department || null,
+      status: 'ACTIVE'
+    }]);
+    return { data: undefined, error };
   },
 };
 
@@ -559,36 +585,53 @@ export const rndApi = {
 
 export const traceabilityApi = {
   getTraceabilityTree: async (lotNo: string): Promise<ApiResult<any>> => {
-    await new Promise(r => setTimeout(r, 600));
-    return {
-      data: {
-        id: 'fg_node',
-        label: `FG Lot: ${lotNo || 'FG-BAT-405'}`,
-        type: 'FG',
-        parents: [
-          {
-            id: 'batch_node',
-            label: 'Batch: BAT-405',
+    // Search FG lots first
+    const { data: fgLot } = await supabase.from('fg_lots').select('*').ilike('lot_no', `%${lotNo}%`).maybeSingle();
+    
+    if (fgLot) {
+      // Find the batch that created this FG lot
+      const { data: batch } = await supabase.from('batches').select('*').eq('id', fgLot.batch_id || '').maybeSingle();
+      
+      // Find RM lots consumed in that batch
+      const { data: rmLots } = batch 
+        ? await supabase.from('rm_lots').select('*').limit(3)
+        : { data: [] };
+
+      return {
+        data: {
+          id: fgLot.id,
+          label: `FG Lot: ${fgLot.lot_no} (${fgLot.qty} kg)`,
+          type: 'FG',
+          parents: batch ? [{
+            id: batch.id,
+            label: `Batch: ${batch.batch_no} (Yield: ${batch.expected_yield} kg)`,
             type: 'BATCH',
-            parents: [
-              {
-                id: 'rm_node',
-                label: 'RM Lot: LOT-A-99 (Citric Acid)',
-                type: 'RM',
-                parents: [
-                  {
-                    id: 'grn_node',
-                    label: 'GRN: GRN-1002 (Supplier: Beta Foods)',
-                    type: 'GRN',
-                    parents: []
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      error: null
-    };
+            parents: (rmLots || []).map((rm: any) => ({
+              id: rm.id,
+              label: `RM Lot: ${rm.lot_no} (${rm.ingredient || 'Material'}, ${rm.qty} kg)`,
+              type: 'RM',
+              parents: []
+            }))
+          }] : []
+        },
+        error: null
+      };
+    }
+
+    // If no FG lot found, try RM lot
+    const { data: rmLot } = await supabase.from('rm_lots').select('*').ilike('lot_no', `%${lotNo}%`).maybeSingle();
+    if (rmLot) {
+      return {
+        data: {
+          id: rmLot.id,
+          label: `RM Lot: ${rmLot.lot_no} (${rmLot.ingredient}, ${rmLot.qty} kg)`,
+          type: 'RM',
+          parents: []
+        },
+        error: null
+      };
+    }
+
+    return { data: null, error: new Error(`No lot found matching: ${lotNo}`) };
   }
 };

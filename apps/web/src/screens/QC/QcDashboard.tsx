@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { qcApi } from '../../lib/bosApi';
 import { ClipboardCheck, Search } from 'lucide-react';
+import QcDecisionModal from './QcDecisionModal';
 
 export default function QcDashboard() {
   const [pendingFg, setPendingFg] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBatch, setSelectedBatch] = useState<any>(null);
+  const [decision, setDecision] = useState<'PASS' | 'FAIL' | null>(null);
 
   useEffect(() => {
     loadQc();
@@ -46,6 +49,7 @@ export default function QcDashboard() {
               <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: 'var(--glass-border)' }}>
                 <button 
                   className="btn-primary" 
+                  onClick={() => { setSelectedBatch(fg); setDecision('PASS'); }}
                   style={{ width: '100%', background: 'var(--success-color)', display: 'flex', justifyContent: 'center', gap: '8px' }}
                 >
                   <ClipboardCheck size={16} /> Record Results & Issue CoA
@@ -55,6 +59,14 @@ export default function QcDashboard() {
           ))}
         </div>
       )}
+
+      <QcDecisionModal
+        isOpen={!!decision}
+        onClose={() => setDecision(null)}
+        onSuccess={loadQc}
+        batch={selectedBatch}
+        decision={decision}
+      />
     </div>
   );
 }

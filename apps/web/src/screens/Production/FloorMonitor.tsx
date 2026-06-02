@@ -10,9 +10,8 @@ export default function FloorMonitor() {
   }, []);
 
   const loadRunningBatches = async () => {
-    // In a real app we'd fetch only status=RUNNING
     const res = await productionApi.getBatches();
-    if (res.data) setBatches(res.data.filter((b:any) => b.status === 'RUNNING'));
+    if (res.data) setBatches(res.data.filter((b:any) => b.status === 'RUNNING' || b.status === 'PLANNED'));
   };
 
   return (
@@ -45,7 +44,7 @@ export default function FloorMonitor() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Factory size={16} /> <strong>Product:</strong> {b.product}
+                  <Factory size={16} /> <strong>Batch No:</strong> {b.batch_no}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Clock size={16} /> <strong>Started:</strong> {new Date().toLocaleTimeString()}
@@ -55,11 +54,11 @@ export default function FloorMonitor() {
               <div style={{ marginTop: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-between' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Target Qty</div>
-                  <div style={{ fontWeight: 'bold' }}>{b.planned_qty} LTR</div>
+                  <div style={{ fontWeight: 'bold' }}>{b.expected_yield} kg</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Operator</div>
-                  <div style={{ fontWeight: 'bold' }}>{b.operator || 'Unassigned'}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</div>
+                  <div style={{ fontWeight: 'bold', color: b.status === 'RUNNING' ? '#4ADE80' : '#EAB308' }}>{b.status}</div>
                 </div>
               </div>
             </div>

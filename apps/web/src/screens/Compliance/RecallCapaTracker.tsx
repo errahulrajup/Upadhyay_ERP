@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { complianceApi } from '../../lib/bosApi';
-import { ShieldAlert, CheckCircle, FilePlus } from 'lucide-react';
+import { ShieldAlert, CheckCircle, FilePlus, X } from 'lucide-react';
 import CreateCapaModal from './CreateCapaModal';
 
 export default function RecallCapaTracker() {
@@ -8,6 +8,10 @@ export default function RecallCapaTracker() {
   const [capas, setCapas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCapaModalOpen, setIsCapaModalOpen] = useState(false);
+  const [isRecallModalOpen, setIsRecallModalOpen] = useState(false);
+  const [recallLot, setRecallLot] = useState('');
+  const [recallReason, setRecallReason] = useState('');
+  const [recallSeverity, setRecallSeverity] = useState('CLASS_II');
 
   useEffect(() => {
     loadData();
@@ -29,6 +33,13 @@ export default function RecallCapaTracker() {
     loadData();
   };
 
+  const handleInitiateRecall = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await complianceApi.initiateRecall({ affected_lot: recallLot, reason: recallReason, severity: recallSeverity, status: 'ACTIVE' });
+    setIsRecallModalOpen(false); setRecallLot(''); setRecallReason('');
+    loadData();
+  };
+
   return (
     <div className="animate-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -40,7 +51,7 @@ export default function RecallCapaTracker() {
           <button className="btn-secondary" onClick={() => setIsCapaModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FilePlus size={18} /> Raise CAPA
           </button>
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--danger-color)' }}>
+          <button className="btn-primary" onClick={() => setIsRecallModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--danger-color)' }}>
             <ShieldAlert size={18} /> Initiate Recall
           </button>
         </div>
@@ -122,6 +133,30 @@ export default function RecallCapaTracker() {
           onClose={() => setIsCapaModalOpen(false)}
           onSuccess={loadData}
         />
+      )}
+
+      {isRecallModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <h2 style={{ color: '#F87171' }}>⚠️ Initiate Product Recall</h2>
+              <button className="btn-secondary" onClick={() => setIsRecallModalOpen(false)}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleInitiateRecall} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <input required placeholder="Affected Lot Number" value={recallLot} onChange={e => setRecallLot(e.target.value)}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #F87171', background: 'rgba(248,113,113,0.05)', color: 'white' }} />
+              <textarea required placeholder="Reason for Recall" rows={3} value={recallReason} onChange={e => setRecallReason(e.target.value)}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white', resize: 'none' }} />
+              <select value={recallSeverity} onChange={e => setRecallSeverity(e.target.value)}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: '#0F172A', color: 'white' }}>
+                <option value="CLASS_I">Class I (Life Threatening)</option>
+                <option value="CLASS_II">Class II (Health Hazard)</option>
+                <option value="CLASS_III">Class III (Regulatory)</option>
+              </select>
+              <button type="submit" className="btn-primary" style={{ background: 'var(--danger-color)' }}>Confirm Recall Initiation</button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

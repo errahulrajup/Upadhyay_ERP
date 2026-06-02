@@ -48,8 +48,8 @@ export default function BatchQc() {
               </div>
               
               <div style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                <p><strong>Product:</strong> {b.product}</p>
-                <p><strong>Qty:</strong> {b.planned_qty} LTR</p>
+                <p><strong>Batch No:</strong> {b.batch_no}</p>
+                <p><strong>Target Qty:</strong> {b.expected_yield} kg</p>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>

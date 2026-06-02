@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Users, GraduationCap, Plus } from 'lucide-react';
+import { Users, GraduationCap, Plus, X } from 'lucide-react';
 import { complianceApi } from '../../lib/bosApi';
+import { supabase } from '../../lib/supabase';
 
 export default function TrainingMatrix() {
   const [records, setRecords] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [empName, setEmpName] = useState('');
+  const [topic, setTopic] = useState('');
+  const [trainingDate, setTrainingDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     loadRecords();
@@ -12,6 +17,16 @@ export default function TrainingMatrix() {
   const loadRecords = async () => {
     const res = await complianceApi.getTrainingRecords();
     if (res.data) setRecords(res.data);
+  };
+
+  const handleLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await supabase.from('training_matrix').insert([{
+      employee_name: empName, training_topic: topic,
+      training_date: trainingDate, status: 'COMPLETED'
+    }]);
+    setIsModalOpen(false); setEmpName(''); setTopic('');
+    loadRecords();
   };
 
   return (
@@ -23,7 +38,7 @@ export default function TrainingMatrix() {
           </h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>FSSAI hygiene and safety training records.</p>
         </div>
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button onClick={() => setIsModalOpen(true)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Plus size={18} /> Log Training
         </button>
       </div>
@@ -58,6 +73,26 @@ export default function TrainingMatrix() {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <h2>Log Training Record</h2>
+              <button className="btn-secondary" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleLog} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <input required placeholder="Employee Name" value={empName} onChange={e => setEmpName(e.target.value)}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
+              <input required placeholder="Training Topic" value={topic} onChange={e => setTopic(e.target.value)}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
+              <input type="date" required value={trainingDate} onChange={e => setTrainingDate(e.target.value)}
+                style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'white' }} />
+              <button type="submit" className="btn-primary">Save Record</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

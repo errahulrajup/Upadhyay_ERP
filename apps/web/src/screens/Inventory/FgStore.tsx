@@ -32,14 +32,6 @@ export default function FgStore() {
           <h1>Finished Goods Store</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Manage FG lots, holding statuses, and COAs.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileCheck size={18} /> Issue COA
-          </button>
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ArrowRightLeft size={18} /> Transfer
-          </button>
-        </div>
       </div>
 
       <div className="card">

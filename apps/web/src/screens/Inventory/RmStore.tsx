@@ -27,9 +27,6 @@ export default function RmStore() {
           <h1>Raw Material Store</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Manage RM lots and physical locations.</p>
         </div>
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ArrowRightLeft size={18} /> Transfer Stock
-        </button>
       </div>
 
       <div className="card">

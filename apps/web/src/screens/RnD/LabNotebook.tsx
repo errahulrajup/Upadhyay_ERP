@@ -51,7 +51,11 @@ export default function LabNotebook() {
               <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{t.objective || 'No objective defined.'}</p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid var(--glass-border)', paddingTop: '12px' }}>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>By: {t.author}</span>
-                <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button 
+                  onClick={() => alert(`Experiment Notebook Entry\n\nName: ${t.name}\nScientist: ${t.author}\nStatus: ${t.status}\nObjective: ${t.objective}\nDate: ${new Date(t.created_at || Date.now()).toLocaleDateString()}`)}
+                  className="btn-secondary" 
+                  style={{ padding: '4px 8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
                   <Edit3 size={14} /> Open
                 </button>
               </div>

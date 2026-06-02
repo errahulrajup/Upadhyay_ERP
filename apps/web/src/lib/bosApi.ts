@@ -137,6 +137,15 @@ export const inventoryApi = {
       error: null
     };
   },
+  getGeneralItems: async (): Promise<ApiResult<any[]>> => {
+    const { data, error } = await supabase.from('general_store_items').select('*').order('created_at', { ascending: false });
+    return { data: data || [], error };
+  },
+  addGeneralItem: async (payload: any): Promise<ApiResult<void>> => {
+    payload.item_code = 'GS-' + Date.now().toString().slice(-4);
+    const { error } = await supabase.from('general_store_items').insert([payload]);
+    return { data: undefined, error };
+  },
   
   // Phase 15: R&D and Recipe Engine Methods
   getErpProducts: async (): Promise<ApiResult<any[]>> => {
